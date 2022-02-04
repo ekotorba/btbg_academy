@@ -85,3 +85,4 @@ Sylius was originally created by [Paweł Jędrzejewski](http://pjedrzejewski.com
 See the list of [contributors from our awesome community](https://github.com/Sylius/Sylius/contributors).
 # btbg_academy
 # btbg_academy
+# academy

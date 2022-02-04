@@ -1,0 +1,13 @@
+app:
+    ui:
+        free_order: "Free Order"
+        customer_birthday: "Customer birthday"
+        supplier: "Supplier"
+        suppliers: "Suppliers"
+        trust: "Trust"
+        t_shirt_product: "T-Shirt product"
+        productcolors: "Product Color"
+        edit_productcolor: "Edit Product Color"
+        
+
+        

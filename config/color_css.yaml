@@ -1,0 +1,7 @@
+    services:
+        app.block_event_listener.admin.layout.stylesheets:
+            class: Sylius\Bundle\UiBundle\Block\BlockEventListener
+            arguments:
+                - '@@App/Admin/_stylesheets.html.twig'
+            tags:
+                - { name: kernel.event_listener, event: sonata.block.event.sylius.shop.layout.stylesheets, method: onBlockEvent }

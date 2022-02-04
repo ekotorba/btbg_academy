@@ -1,0 +1,126 @@
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    locale: en_US
+    
+
+services:
+    # Default configuration for services in *this* file
+    _defaults:
+        # Automatically injects dependencies in your services
+        autowire: true
+
+        # Automatically registers your services as commands, event subscribers, etc.
+        autoconfigure: true
+
+        # Allows optimizing the container by removing unused services; this also means
+        # fetching services directly from the container via $container->get() won't work
+        public: false
+
+    _instanceof:
+        Sylius\Bundle\ResourceBundle\Controller\ResourceController:
+            autowire: false
+        Sylius\Bundle\ResourceBundle\Form\Type\AbstractResourceType:
+            autowire: false
+
+    # Udostępnia klasy w src/ do użytku jako usługi;
+    # to tworzy usługę na klasę, której id jest w pełni kwalifikowaną nazwą klasy
+    App\:
+        resource: '../src/*'
+        exclude: '../src/{Entity,Migrations,Tests,Kernel.php}'
+
+    #Kontrolery są importowane osobno, aby zapewnić możliwość wstrzykiwania usług
+    # jako argumenty akcji, nawet jeśli nie rozszerzasz żadnej podstawowej klasy kontrolera
+    App\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+        
+    App\Context\TimeBasedChannelContext:
+        arguments:
+            - '@sylius.repository.channel'
+            - '@App\DateTime\ClockInterface'
+        tags:
+            - { name: 'sylius.context.channel', priority: 1000 }
+                
+    App\ShippingCalculator\WeightBasedShippingCalculator:
+        tags:
+            - {
+                  name: sylius.shipping_calculator,
+                  calculator: 'weight_based',
+                  form_type: 'App\Form\Type\WeightBasedShippingCalculatorType',
+                  label: 'Weight-based'
+            }
+            
+    App\Menu\AdminMainMenuListener:
+        tags:
+            - { name: kernel.event_listener, event: sylius.menu.admin.main, method: addSupplierMenu }
+            
+    App\Menu\AdminMainMenuListenerProductColor:
+        tags:
+            - { name: kernel.event_listener, event: sylius.menu.admin.main, method: addProductColorMenu }
+
+
+    
+    App\Form\Type\SupplierType:
+        arguments:
+            - '%app.model.supplier.class%'
+    
+    App\Notifier\SupplierTrustingNotifierInterface:
+        class: App\Notifier\EmailSupplierTrustingNotifier
+        public: true
+         
+    App\Listener\ReviewCreationListener:
+        arguments:
+            - '@sm.factory'
+            - '@App\Checker\TrustedCustomerCheckerInterface'
+        tags:
+            - { name: kernel.event_listener, event: sylius.product_review.pre_create, method: acceptForTrustedAuthor}
+
+    App\Factory\ProductFactory:
+        decorates: sylius.factory.product
+        arguments:
+            - '@App\Factory\ProductFactory.inner'
+            
+    App\Assigner\ShipmentCodeAssignerInterface:
+        class: App\Assigner\ShipmentCodeAssigner
+        arguments:
+            - '@App\Provider\ShipmentCodeProviderInterface'
+            - '@sylius.manager.shipment'
+        public: true
+        
+    App\Controller\QuickCheckoutAction:
+        arguments:
+            - '@sylius.repository.product_variant'
+            - '@sylius.factory.order'
+            - '@sylius.factory.order_item'
+            - '@sylius.order_item_quantity_modifier'
+            - '@sylius.context.shopper'
+            - '@sm.factory'
+            - '@sylius.manager.order'
+            - '@router'
+        public: true
+        
+            
+    App\Promotion\Rule\BirthdayPromotionRuleChecker:
+        tags:
+            - 
+                {
+                    name: sylius.promotion_rule_checker,
+                    type: birthday,
+                    label: "app.ui.customer_birthday",
+                    form_type: Symfony\Component\Form\Extension\Core\Type\FormType
+                }
+                
+    App\Promotion\Action\FreeOrderPromotionActionCommand:
+        arguments:
+        - '@sylius.factory.adjustment'
+        tags:
+            -
+                {
+                    name: sylius.promotion_action,
+                    type: free_order,
+                    label: "app.ui.free_order",
+                    form_type: Symfony\Component\Form\Extension\Core\Type\FormType
+                }
+             
+

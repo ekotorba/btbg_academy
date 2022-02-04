@@ -1,0 +1,9 @@
+
+
+<div class="ui product-color" id="product-color">
+    {% if product.color is null %}
+        <span>Color not been set</span>
+    {% else %}
+        <span class="bordered yellow">  {{ product.color.name }} </span>
+    {% endif %}
+</div>
